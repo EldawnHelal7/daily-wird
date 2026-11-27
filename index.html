@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c1715">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Daily Wird</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Outfit:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+/* Layout: one narrow column — header + week strip, then three checklist groups; oath sheet slides up over it */
+:root{
+  --bg:#eef3f1; --surface:#ffffff; --line:#d5e0dc; --fg:#132420; --muted:#5b6f69;
+  --accent:#0d6b5c; --accent-soft:#d6ece6; --gold:#b7862a; --gold-soft:#f5ead2; --scrim:rgba(10,25,21,.45);
+  --f-display:"Outfit",system-ui,sans-serif; --f-body:"Inter",system-ui,sans-serif; --f-ar:"Amiri","Noto Naskh Arabic",serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c1715; --surface:#13221f; --line:#243934; --fg:#e4efeb; --muted:#93aaa3;
+  --accent:#4cc3a9; --accent-soft:#173a33; --gold:#e0b45a; --gold-soft:#3a2f17; --scrim:rgba(0,0,0,.6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1715; --surface:#13221f; --line:#243934; --fg:#e4efeb; --muted:#93aaa3;
+  --accent:#4cc3a9; --accent-soft:#173a33; --gold:#e0b45a; --gold-soft:#3a2f17; --scrim:rgba(0,0,0,.6); color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+header{display:flex;flex-direction:column;gap:4px}
+.ar-top{font-family:var(--f-ar);font-size:1.15rem;color:var(--accent);direction:rtl;text-align:left}
+h1{font-family:var(--f-display);font-weight:700;font-size:1.7rem;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.date{color:var(--muted);font-size:.92rem}
+.summary{display:flex;gap:10px;flex-wrap:wrap}
+.pill{display:flex;align-items:baseline;gap:6px;padding:8px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+.pill b{font-family:var(--f-display);font-size:1.25rem}
+.pill span{color:var(--muted);font-size:.82rem}
+.pill.gold{background:var(--gold-soft);border-color:transparent}
+.pill.gold b{color:var(--gold)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.day{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0 6px;border-radius:10px;border:1px solid transparent;background:none;color:var(--fg);font:inherit;cursor:pointer}
+.day:focus-visible,.item:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.day.sel{background:var(--surface);border-color:var(--line)}
+.day small{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.day .n{font-size:.8rem;font-variant-numeric:tabular-nums}
+.ring{width:30px;height:30px}
+.ring circle{fill:none;stroke-width:4}
+.ring .bgc{stroke:var(--line)} .ring .fgc{stroke:var(--accent);stroke-linecap:round;transform:rotate(-90deg);transform-origin:center}
+.ring.full .fgc{stroke:var(--gold)}
+.notice{font-size:.85rem;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:8px 12px}
+section{display:flex;flex-direction:column;gap:8px}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline}
+h2{font-family:var(--f-display);font-weight:600;font-size:1.05rem;margin:0}
+h2 .ar{font-family:var(--f-ar);font-weight:400;color:var(--muted);margin-left:8px;font-size:1.05rem}
+.count{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.list{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.item{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:12px;padding:12px 14px;border:0;border-top:1px solid var(--line);background:none;color:var(--fg);font:inherit;text-align:left;cursor:pointer;width:100%}
+.item:first-child{border-top:0}
+.item:disabled{cursor:default}
+.box{width:24px;height:24px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;transition:background .15s,border-color .15s}
+.box svg{width:14px;height:14px;opacity:0}
+.item.done .box{background:var(--accent);border-color:var(--accent)}
+.item.done .box svg{opacity:1}
+.item.done .lbl{color:var(--muted)}
+.lbl{display:flex;flex-direction:column;min-width:0}
+.lbl strong{font-weight:500}
+.lbl em{font-style:normal;font-size:.8rem;color:var(--muted)}
+.t{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sworn{font-size:.72rem;color:var(--gold);white-space:nowrap}
+footer{font-size:.78rem;color:var(--muted);text-align:center}
+/* oath sheet */
+.scrim{position:fixed;inset:0;background:var(--scrim);display:grid;align-items:end;justify-items:center;z-index:20}
+.scrim[hidden],.notice[hidden]{display:none}
+.sheet{width:100%;max-width:560px;background:var(--surface);border-radius:18px 18px 0 0;padding:24px max(20px,env(safe-area-inset-left,0px)) calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;animation:up .2s ease-out}
+@keyframes up{from{transform:translateY(30px);opacity:.6}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}.box{transition:none}}
+.oath-ar{font-family:var(--f-ar);font-size:1.6rem;line-height:1.7;direction:rtl;text-align:center;color:var(--fg)}
+.oath-en{text-align:center;color:var(--muted)}
+.oath-en b{color:var(--fg)}
+.warn{font-size:.82rem;text-align:center;color:var(--muted);background:var(--gold-soft);border-radius:10px;padding:8px 12px}
+.btns{display:flex;gap:10px}
+.btns button{flex:1;padding:13px;border-radius:12px;font:600 1rem var(--f-display);cursor:pointer;border:1px solid var(--line);background:none;color:var(--fg)}
+.btns .swear{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="ar-top">إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ</div>
+    <h1>Daily Wird</h1>
+    <div class="date" id="date"></div>
+  </header>
+
+  <div class="summary">
+    <div class="pill"><b id="pPct">0%</b><span>of today done</span></div>
+    <div class="pill"><b id="pPray">0/5</b><span>prayers</span></div>
+    <div class="pill gold"><b id="pStreak">0</b><span>day prayer streak</span></div>
+  </div>
+
+  <div class="week" id="week" aria-label="Last 7 days"></div>
+  <div class="notice" id="notice" hidden></div>
+  <div id="groups"></div>
+  <footer id="foot">Tick an item to swear you did it. Unticking needs no oath. Saved on this phone only.</footer>
+</div>
+
+<div class="scrim" id="scrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="oathAr">
+    <div class="oath-ar" id="oathAr">أُقْسِمُ بِاللهِ العَظِيمِ أَنِّي فَعَلْتُ هَذَا</div>
+    <div class="oath-en">I swear by Allah that I did: <b id="oathItem"></b></div>
+    <div class="warn">A false oath is a major sin. If you didn't do it, there's no shame in leaving it unticked.</div>
+    <div class="btns">
+      <button type="button" id="noBtn">Not yet</button>
+      <button type="button" class="swear" id="yesBtn">والله فعلت · I swear</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const GROUPS=[
+  {id:"salah",title:"Prayers",ar:"الصلاة",items:[
+    {k:"fajr",n:"Fajr",t:"~5:10"},
+    {k:"dhuhr",n:"Dhuhr",t:"~11:55",s:"Jumu'ah on Friday"},
+    {k:"asr",n:"Asr",t:"~2:40"},
+    {k:"maghrib",n:"Maghrib",t:"~5:00"},
+    {k:"isha",n:"Isha",t:"~6:25"},
+    {k:"qiyam",n:"Night prayer",t:"10:00",s:"At least 30 minutes before sleep"}]},
+  {id:"adhkar",title:"Adhkar & Quran",ar:"الأذكار",items:[
+    {k:"morning",n:"Morning adhkar",s:"After Fajr"},
+    {k:"evening",n:"Evening adhkar",s:"After Asr"},
+    {k:"afterSalah",n:"Adhkar after every prayer"},
+    {k:"quran",n:"Quran wird"},
+    {k:"sleep",n:"Adhkar before sleep"}]},
+  {id:"day",title:"The day",ar:"اليوم",items:[
+    {k:"wake",n:"Woke up for Fajr",s:"Prayed it on time"},
+    {k:"roadmap",n:"Self-learning roadmap",t:"5:30",s:"1–2 hours"},
+    {k:"study",n:"Study",t:"8:00",s:"2 hours, phone in another room"},
+    {k:"work",n:"Work / projects block",t:"10:00"},
+    {k:"move",n:"Went out or exercised",t:"3:00"},
+    {k:"gaming",n:"Didn't game late",s:"Stopped at a reasonable time"},
+    {k:"bed",n:"Slept early",s:"Before midnight"}]}
+];
+const PRAYERS=["fajr","dhuhr","asr","maghrib","isha"];
+const ALL=GROUPS.flatMap(g=>g.items);
+const pad=n=>String(n).padStart(2,"0");
+const key=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const today=key(new Date());
+const days=[...Array(7)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-6+i);return d});
+let sel=today, data={}, store=null, pending=null;
+
+// local fallback
+const lsGet=k=>{try{return JSON.parse(localStorage.getItem("wird:"+k)||"null")}catch(e){return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem("wird:"+k,JSON.stringify(v))}catch(e){}};
+days.forEach(d=>{const k=key(d);const v=lsGet(k);if(v)data[k]=v});
+
+const checks=k=>(data[k]&&data[k].checks)||{};
+const pct=k=>Math.round(ALL.filter(i=>checks(k)[i.k]).length/ALL.length*100);
+function streak(){
+  let s=0;const d=new Date();
+  const allP=k=>PRAYERS.every(p=>checks(k)[p]);
+  if(!allP(key(d)))d.setDate(d.getDate()-1);
+  while(allP(key(d))){s++;d.setDate(d.getDate()-1)}
+  return s;
+}
+
+function render(){
+  const sd=days.find(d=>key(d)===sel);
+  document.getElementById("date").textContent=sd.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+  document.getElementById("pPct").textContent=pct(sel)+"%";
+  document.getElementById("pPray").textContent=PRAYERS.filter(p=>checks(sel)[p]).length+"/5";
+  document.getElementById("pStreak").textContent=streak();
+  const C=2*Math.PI*12;
+  document.getElementById("week").innerHTML=days.map(d=>{
+    const k=key(d),p=pct(k);
+    return `<button class="day${k===sel?" sel":""}" data-k="${k}" aria-label="${d.toDateString()}, ${p}%">
+      <small>${d.toLocaleDateString("en-GB",{weekday:"short"})}</small>
+      <svg class="ring${p===100?" full":""}" viewBox="0 0 30 30"><circle class="bgc" cx="15" cy="15" r="12"/><circle class="fgc" cx="15" cy="15" r="12" stroke-dasharray="${C*p/100} ${C}"/></svg>
+      <span class="n">${d.getDate()}</span></button>`}).join("");
+  const past=sel!==today;
+  const nt=document.getElementById("notice");
+  nt.hidden=!past; nt.textContent="Past days are view-only. What's done is done, tomorrow is a new chance.";
+  const ch=checks(sel);
+  document.getElementById("groups").innerHTML=GROUPS.map(g=>{
+    const c=g.items.filter(i=>ch[i.k]).length;
+    return `<section><div class="sec-h"><h2>${g.title}<span class="ar">${g.ar}</span></h2><span class="count">${c}/${g.items.length}</span></div>
+    <div class="list">${g.items.map(i=>`<button class="item${ch[i.k]?" done":""}" data-i="${i.k}" ${past?"disabled":""} aria-pressed="${!!ch[i.k]}">
+      <span class="box"><svg viewBox="0 0 14 14"><path d="M2.5 7.5l3 3 6-7" stroke="var(--surface)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="lbl"><strong>${i.n}</strong>${i.s?`<em>${i.s}</em>`:""}</span>
+      ${ch[i.k]?`<span class="sworn">sworn ✓</span>`:`<span class="t">${i.t||""}</span>`}</button>`).join("")}</div></section>`}).join("");
+}
+
+async function save(k){
+  lsSet(k,data[k]);
+  if(store){try{await store.doc(k).set(data[k])}catch(e){}}
+}
+function setCheck(ik,val){
+  const d=data[today]||(data[today]={checks:{}});
+  if(val)d.checks[ik]=true;else delete d.checks[ik];
+  d.updated=new Date().toISOString();
+  render();save(today);
+}
+
+document.getElementById("week").addEventListener("click",e=>{const b=e.target.closest(".day");if(b){sel=b.dataset.k;render()}});
+document.getElementById("groups").addEventListener("click",e=>{
+  const b=e.target.closest(".item");if(!b||b.disabled)return;
+  const ik=b.dataset.i;
+  if(checks(today)[ik]){setCheck(ik,false);return}
+  pending=ik;
+  document.getElementById("oathItem").textContent=ALL.find(i=>i.k===ik).n;
+  document.getElementById("scrim").hidden=false;
+  document.getElementById("noBtn").focus();
+});
+const close=()=>{document.getElementById("scrim").hidden=true;pending=null};
+document.getElementById("noBtn").onclick=close;
+document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="scrim")close()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&pending)close()});
+document.getElementById("yesBtn").onclick=()=>{const ik=pending;close();if(ik)setCheck(ik,true)};
+
+render();
+
+// roll over to a new day if the app stays open past midnight
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&key(new Date())!==today)location.reload()});
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
